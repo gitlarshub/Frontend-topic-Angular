@@ -1,9 +1,11 @@
 import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
 
 @Component({
-    selector: 'app-dashboard',
-    standalone: true,
-    template: `
+  selector: 'app-dashboard',
+  standalone: true,
+  imports: [CommonModule],
+  template: `
     <div class="dashboard">
       <h1>Dashboard</h1>
       <div class="cards">
@@ -19,8 +21,8 @@ import { Component } from '@angular/core';
       </div>
     </div>
   `,
-    styles: [
-        `
+  styles: [
+    `
       .dashboard {
         padding: 20px;
       }
@@ -38,11 +40,11 @@ import { Component } from '@angular/core';
         margin-top: 20px;
       }
     `
-    ]
+  ]
 })
 export class DashboardComponent {
-    studentCount = 120;
-    teacherCount = 15;
-    classCount = 10;
-    activities = ['Schüler hinzugefügt', 'Lehrer aktualisiert', 'Klasse erstellt'];
+  studentCount = 120;
+  teacherCount = 15;
+  classCount = 10;
+  activities = ['Schüler hinzugefügt', 'Lehrer aktualisiert', 'Klasse erstellt'];
 }
