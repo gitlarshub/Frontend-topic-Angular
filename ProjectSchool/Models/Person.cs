@@ -1,4 +1,4 @@
-﻿namespace ProjectSchool.Models
+namespace ProjectSchool.Models
 {
     public class Person
     {
@@ -23,6 +23,11 @@
         }
 
         public DateTime Geburtstag { get; set; }
+
+        // Parameterloser Konstruktor für Model-Binding / EF
+        public Person()
+        {
+        }
 
         public Person(DateTime geburtstag, string geschlecht)
         {
