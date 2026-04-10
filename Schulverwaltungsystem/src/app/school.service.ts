@@ -55,5 +55,15 @@ export class SchoolService {
       responseType: 'text'
     });
   }
+
+  getAllKlassenraeume(): Observable<any[]> {
+    return this.http.get<any[]>(`http://localhost:5287/api/klassenraum/all`);
+  }
+
+  addKlassenraum(payload: { name: string; raumInQm: number; plaetze: number; hasCynap: boolean }): Observable<string> {
+    return this.http.post(`http://localhost:5287/api/klassenraum/add`, payload, {
+      responseType: 'text'
+    });
+  }
 }
 

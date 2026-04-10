@@ -1,8 +1,10 @@
-import { Component, signal, computed } from '@angular/core';
+import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { SchoolService } from './school.service';
 
 interface Classroom {
+  id?: number;
   name: string;
   raumInQm: number;
   plaetze: number;
@@ -18,7 +20,7 @@ interface Classroom {
       <div class="flex flex-col gap-1">
         <h2 class="text-lg font-semibold text-slate-50">Classrooms</h2>
         <p class="text-sm text-slate-400">
-          Klassenräume im Frontend verwalten und durchsuchen.
+          Klassenräume verwalten und durchsuchen.
         </p>
       </div>
 
@@ -72,12 +74,21 @@ interface Classroom {
             </label>
             <button
               type="submit"
-              class="ml-auto inline-flex items-center rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-emerald-500"
+              [disabled]="submitting || !formName.trim()"
+              class="ml-auto inline-flex items-center rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-emerald-500 disabled:cursor-not-allowed disabled:bg-emerald-800"
             >
-              Hinzufügen
+              <span *ngIf="!submitting">Hinzufügen</span>
+              <span *ngIf="submitting">Speichere…</span>
             </button>
           </div>
         </form>
+
+        <p *ngIf="successMessage" class="mt-2 text-xs text-emerald-400">
+          {{ successMessage }}
+        </p>
+        <p *ngIf="errorMessage" class="mt-2 text-xs text-rose-400">
+          {{ errorMessage }}
+        </p>
       </section>
 
       <section class="rounded-lg border border-slate-800 bg-slate-900/70 p-3">
@@ -142,7 +153,8 @@ interface Classroom {
     </div>
   `
 })
-export class ClassroomsPageComponent {
+export class ClassroomsPageComponent implements OnInit {
+  private readonly schoolService = inject(SchoolService);
   private readonly _classrooms = signal<Classroom[]>([]);
 
   formName = '';
@@ -150,6 +162,9 @@ export class ClassroomsPageComponent {
   formPlaetze = 0;
   formHasCynap = false;
 
+  submitting = false;
+  successMessage = '';
+  errorMessage = '';
   search = '';
 
   readonly filteredClassrooms = computed(() => {
@@ -161,23 +176,65 @@ export class ClassroomsPageComponent {
     return list.filter((c) => c.name.toLowerCase().includes(q));
   });
 
+  ngOnInit(): void {
+    this.loadClassrooms();
+  }
+
+  private loadClassrooms(): void {
+    this.schoolService.getAllKlassenraeume().subscribe({
+      next: (raeume) => {
+        this._classrooms.set(raeume);
+      },
+      error: () => {
+        this.errorMessage = 'Fehler beim Laden der Klassenräume.';
+      }
+    });
+  }
+
   onAdd(): void {
     const name = this.formName.trim();
-    if (!name) {
+    if (!name || this.submitting) {
       return;
     }
-    const next: Classroom = {
+
+    this.successMessage = '';
+    this.errorMessage = '';
+    this.submitting = true;
+
+    const payload = {
       name,
       raumInQm: this.formRaumInQm || 0,
       plaetze: this.formPlaetze || 0,
       hasCynap: this.formHasCynap
     };
-    this._classrooms.update((list) => [...list, next]);
 
-    this.formName = '';
-    this.formRaumInQm = 0;
-    this.formPlaetze = 0;
-    this.formHasCynap = false;
+    this.schoolService.addKlassenraum(payload).subscribe({
+      next: (msg) => {
+        this.successMessage = msg || `Klassenraum "${name}" hinzugefügt!`;
+        this.submitting = false;
+
+        // Add to list
+        this._classrooms.update((list) => [
+          ...list,
+          {
+            name,
+            raumInQm: this.formRaumInQm,
+            plaetze: this.formPlaetze,
+            hasCynap: this.formHasCynap
+          }
+        ]);
+
+        // Clear form
+        this.formName = '';
+        this.formRaumInQm = 0;
+        this.formPlaetze = 0;
+        this.formHasCynap = false;
+      },
+      error: (err) => {
+        this.errorMessage = err?.error ?? 'Fehler beim Speichern.';
+        this.submitting = false;
+      }
+    });
   }
 
   trackByName(_: number, item: Classroom): string {

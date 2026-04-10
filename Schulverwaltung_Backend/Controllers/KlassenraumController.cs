@@ -16,6 +16,13 @@ namespace Schulwebapplikation.Controllers
             _context = context;
         }
 
+        [HttpGet("all")]
+        public async Task<IActionResult> GetAllKlassenraeume()
+        {
+            var raeume = await _context.Klassenraeume.ToListAsync();
+            return Ok(raeume);
+        }
+
         [HttpPost("add")]
         public async Task<IActionResult> AddKlassenraum([FromBody] Klassenraum klassenraum)
         {
