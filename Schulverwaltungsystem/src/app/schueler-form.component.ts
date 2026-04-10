@@ -48,12 +48,23 @@ import { SchoolService } from './school.service';
             <input
               formControlName="geburtstag"
               type="date"
+              (change)="calculateAge()"
               class="mt-1 rounded-md border border-slate-600 bg-slate-900 px-2 py-1.5 text-sm text-slate-100 placeholder:text-slate-500 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
             />
           </label>
         </div>
 
         <div class="grid gap-4 md:grid-cols-2">
+          <label class="flex flex-col text-xs font-medium text-slate-300">
+            Alter (automatisch berechnet)
+            <input
+              type="number"
+              [value]="calculatedAge"
+              disabled
+              class="mt-1 rounded-md border border-slate-600 bg-slate-800 px-2 py-1.5 text-sm text-slate-400 cursor-not-allowed"
+            />
+          </label>
+
           <label class="flex flex-col text-xs font-medium text-slate-300">
             Geschlecht
             <select
@@ -105,6 +116,26 @@ export class SchuelerFormComponent {
   submitting = false;
   successMessage = '';
   errorMessage = '';
+  calculatedAge = 0;
+
+  calculateAge(): void {
+    const geburtsdagValue = this.form.get('geburtstag')?.value;
+    if (!geburtsdagValue) {
+      this.calculatedAge = 0;
+      return;
+    }
+
+    const birthDate = new Date(geburtsdagValue);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+
+    if (today.getMonth() < birthDate.getMonth() ||
+      (today.getMonth() === birthDate.getMonth() && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+
+    this.calculatedAge = age;
+  }
 
   onSubmit(): void {
     if (this.form.invalid || this.submitting) {
@@ -133,6 +164,7 @@ export class SchuelerFormComponent {
               : 'Schüler wurde erfolgreich angelegt.';
           this.submitting = false;
           this.form.reset();
+          this.calculatedAge = 0;
         },
         error: (err) => {
           this.errorMessage =

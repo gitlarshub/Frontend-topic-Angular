@@ -63,6 +63,7 @@ import { SchoolService, Schueler } from './school.service';
                 <th class="border-b border-slate-700 px-3 py-2">Geburtstag</th>
                 <th class="border-b border-slate-700 px-3 py-2">Alter</th>
                 <th class="border-b border-slate-700 px-3 py-2">Geschlecht</th>
+                <th class="border-b border-slate-700 px-3 py-2">Aktionen</th>
               </tr>
             </thead>
             <tbody>
@@ -88,10 +89,19 @@ import { SchoolService, Schueler } from './school.service';
                 <td class="border-b border-slate-800 px-3 py-1.5 text-xs text-slate-300">
                   {{ s.geschlecht }}
                 </td>
+                <td class="border-b border-slate-800 px-3 py-1.5 text-xs">
+                  <button
+                    (click)="onDelete(s.id)"
+                    [disabled]="deleting"
+                    class="rounded bg-rose-600 px-2 py-1 text-white hover:bg-rose-500 disabled:cursor-not-allowed disabled:bg-rose-800"
+                  >
+                    {{ deleting ? 'Löscht...' : 'Löschen' }}
+                  </button>
+                </td>
               </tr>
               <tr *ngIf="schueler().length === 0">
                 <td
-                  colspan="5"
+                  colspan="7"
                   class="px-3 py-4 text-center text-xs text-slate-500"
                 >
                   Noch keine Schüler im System oder Filter ohne Ergebnis.
@@ -114,6 +124,7 @@ export class SchuelerListComponent implements OnInit {
   schueler = signal<Schueler[]>([]);
   klasseFilter = '';
   errorMessage = '';
+  deleting = false;
 
   ngOnInit(): void {
     this.loadAll();
@@ -143,6 +154,28 @@ export class SchuelerListComponent implements OnInit {
       error: () => {
         this.errorMessage = 'Fehler beim Filtern nach Klasse.';
         this.schueler.set([]);
+      }
+    });
+  }
+
+  onDelete(schuelerID: number): void {
+    if (!confirm('Möchtest du diesen Schüler wirklich löschen?')) {
+      return;
+    }
+
+    this.deleting = true;
+    this.errorMessage = '';
+
+    this.schoolService.deleteSchueler(schuelerID).subscribe({
+      next: () => {
+        this.schueler.update(students =>
+          students.filter(s => s.id !== schuelerID)
+        );
+        this.deleting = false;
+      },
+      error: (err) => {
+        this.errorMessage = err?.error ?? 'Fehler beim Löschen des Schülers.';
+        this.deleting = false;
       }
     });
   }

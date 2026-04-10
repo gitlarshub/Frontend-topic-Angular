@@ -26,7 +26,7 @@ builder.Services.AddDbContext<DBContext>(options =>
 
 var app = builder.Build();
 
-// CORS aktivieren
+// CORS aktivieren (MUSS VOR andere Middleware kommen!)
 app.UseCors("AllowAngular");
 
 // Static files aktivieren
@@ -41,7 +41,8 @@ if (app.Environment.IsDevelopment())
 }
 
 // Middleware-Konfiguration
-app.UseHttpsRedirection();
+// HTTPS Redirect auskommentiert um Probleme zu vermeiden (läuft auf HTTP)
+// app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
 

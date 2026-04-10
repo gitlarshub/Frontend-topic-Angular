@@ -8,7 +8,12 @@
 
         public int Alter
         {
-            get => DateTime.Today.Year - Geburtstag.Year;
+            get
+            {
+                int alter = DateTime.Today.Year - Geburtstag.Year;
+                if (Geburtstag.Date > DateTime.Today.AddYears(-alter)) alter--;
+                return alter;
+            }
             set { }
         }
 

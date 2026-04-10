@@ -12,7 +12,7 @@ namespace Schulwebapplikation.Controllers
         private readonly DBContext _context;
 
         public SchuelerController(DBContext context)
-        {   
+        {
             _context = context;
         }
 
@@ -50,6 +50,27 @@ namespace Schulwebapplikation.Controllers
                 .Where(s => s.Klasse == klasse)
                 .ToListAsync();
             return Ok(schuelerInKlasse);
+        }
+
+        [HttpDelete("delete/{id}")]
+        public async Task<IActionResult> DeleteSchueler(int id)
+        {
+            var schueler = await _context.Schueler.FindAsync(id);
+            if (schueler == null)
+            {
+                return NotFound($"Schüler mit ID {id} nicht gefunden.");
+            }
+
+            try
+            {
+                _context.Schueler.Remove(schueler);
+                await _context.SaveChangesAsync();
+                return Ok($"Schüler mit ID {id} wurde gelöscht.");
+            }
+            catch (DbUpdateException ex)
+            {
+                return StatusCode(500, $"Fehler beim Löschen: {ex.InnerException?.Message ?? ex.Message}");
+            }
         }
     }
 }

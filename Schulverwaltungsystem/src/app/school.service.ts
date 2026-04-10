@@ -26,25 +26,32 @@ export interface CreateSchuelerPayload {
 export class SchoolService {
   private readonly http = inject(HttpClient);
 
-  // Passe die URL bei Bedarf an dein Profil/Port an (siehe launchSettings.json)
-  private readonly baseUrl = 'https://localhost:7153/api/schule';
+  // Backend URLs - match your launchSettings.json configuration
+  private readonly schuelerBaseUrl = 'http://localhost:5287/api/schueler';
+  private readonly analyticsBaseUrl = 'http://localhost:5287/api/schule/analytics';
 
   getAllSchueler(): Observable<Schueler[]> {
-    return this.http.get<Schueler[]>(`${this.baseUrl}/getAllSchueler`);
+    return this.http.get<Schueler[]>(`${this.schuelerBaseUrl}/all`);
   }
 
   getSchuelerByKlasse(klasse: string): Observable<Schueler[]> {
-    return this.http.get<Schueler[]>(`${this.baseUrl}/getSchuelerByKlasse/${encodeURIComponent(klasse)}`);
+    return this.http.get<Schueler[]>(`${this.schuelerBaseUrl}/byKlasse/${encodeURIComponent(klasse)}`);
   }
 
   addSchueler(payload: CreateSchuelerPayload): Observable<string> {
-    return this.http.post(`${this.baseUrl}/addSchueler`, payload, {
+    return this.http.post(`${this.schuelerBaseUrl}/add`, payload, {
       responseType: 'text'
     });
   }
 
   checkKannUnterrichten(klasse: string, raumName: string): Observable<string> {
-    return this.http.get(`${this.baseUrl}/kannUnterrichten/${encodeURIComponent(klasse)}/${encodeURIComponent(raumName)}`, {
+    return this.http.get(`${this.analyticsBaseUrl}/kannUnterrichten/${encodeURIComponent(klasse)}/${encodeURIComponent(raumName)}`, {
+      responseType: 'text'
+    });
+  }
+
+  deleteSchueler(id: number): Observable<string> {
+    return this.http.delete(`${this.schuelerBaseUrl}/delete/${id}`, {
       responseType: 'text'
     });
   }
